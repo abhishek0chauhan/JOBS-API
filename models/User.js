@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -20,8 +22,31 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, "please provide password"],
     minlength: 6,
-    maxlength: 12,
   },
 });
+
+// used mongoose pre middleware to seperate some functionality of the api to not make controller heavy;
+UserSchema.pre("save", async function (next) {
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+//used mongoose instance method to make a function to create token within the model file.
+UserSchema.methods.createJWT = function () {
+  return jwt.sign(
+    { userId: this._id, name: this.name },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_LIFETIME,
+    }
+  );
+};
+
+//compare password
+UserSchema.methods.comparePassword = async function (candidatePssword) {
+  const isMatch = await bcrypt.compare(candidatePssword, this.password);
+  return isMatch;
+};
 
 module.exports = mongoose.model("User", UserSchema);
