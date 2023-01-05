@@ -16,7 +16,7 @@ const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 
 //security packages
-const helmet = required("helmet");
+const helmet = require("helmet");
 const cors = require("cors");
 const xss = require("xss-clean");
 const rateLimiter = require("express-rate-limit");
@@ -29,7 +29,6 @@ app.use(
     max: 100,
   })
 );
-app.use(express.json());
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
